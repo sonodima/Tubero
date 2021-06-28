@@ -1,0 +1,17 @@
+.rounded {
+  border-radius: 30px !important;
+}
+
+.card-image {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card-image:active {
+  transform: scale(0.92);
+}
+
+.card-header {
+  padding-left: 30px;
+  padding-bottom: 22px;
+}
