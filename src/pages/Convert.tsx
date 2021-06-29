@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { RouteComponentProps } from "react-router";
 import {
-  IonToast,
+  IonLoading,
   IonContent,
   IonPage,
   IonGrid,
@@ -11,13 +11,12 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
-  IonFooter,
-  IonImg,
-  IonText,
+  IonToggle,
 } from "@ionic/react";
 
 import axios from "axios";
 
+import ErrorMessage from "../components/ErrorMessage";
 import VideoCard from "../components/VideoCard";
 import "./Convert.css";
 
@@ -37,7 +36,7 @@ type ConvertQuery = {
 async function getInfo(v: string): Promise<InfoResponse> {
   const response = await axios.get<InfoResponse>(
     `${process.env.REACT_APP_BACKEND_ADDRESS || ""}/info?v=${v}`,
-    { timeout: 4000 }
+    { timeout: 8000 }
   );
   if (response.status !== 200 && response.data.error) {
     throw new Error(response.data.error);
@@ -101,7 +100,11 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
   const [videoInfo, setVideoInfo] = useState({} as InfoResponse);
   const [conversionPercent, setConversionPercent] = useState(0.0);
 
+  const [devDisableCard, setDevDisableCard] = useState(false);
+
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [showLoading, setShowLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -123,73 +126,63 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
       </IonHeader>
       <IonContent fullscreen>
         <IonGrid>
+          <IonToggle
+            checked={devDisableCard}
+            onIonChange={(e) => setDevDisableCard(e.detail.checked)}
+          />
+
+          {errorMessage === "" && (
+            <div>
+              <IonRow>
+                <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
+                  <VideoCard
+                    url={`https://youtu.be/${match.params.v}`}
+                    title={devDisableCard ? undefined : videoInfo.title}
+                    author={devDisableCard ? undefined : videoInfo.author}
+                    thumbnail={devDisableCard ? undefined : videoInfo.thumbnail}
+                  />
+                </IonCol>
+              </IonRow>
+
+              <IonButton
+                shape="round"
+                expand="block"
+                onClick={() => {
+                  convert(
+                    { v: match.params.v, fmt: "audio", mw: true },
+                    (percent) => {
+                      setConversionPercent(percent);
+                    }
+                  );
+                }}
+              >
+                Convert
+              </IonButton>
+            </div>
+          )}
+
           {errorMessage !== "" && (
-            <IonRow>
-              <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
-                <IonImg
-                  className="error-image"
-                  src="/assets/images/tubero-sad-fill-simple.svg"
-                />
-                <h2>Ooops, there has been an error</h2>
-                <p>{errorMessage}</p>
-                <IonButton color="transparent">Retry</IonButton>
-              </IonCol>
-            </IonRow>
+            <ErrorMessage title="Oops" subtitle={errorMessage}>
+              <IonButton
+                shape="round"
+                onClick={async () => {
+                  setShowLoading(true);
+                  try {
+                    const info = await getInfo(match.params.v);
+                    setVideoInfo(info);
+                  } catch (error) {
+                    setErrorMessage(error.message);
+                  }
+                  setShowLoading(false);
+                }}
+              >
+                Retry
+              </IonButton>
+            </ErrorMessage>
           )}
-
-          {videoInfo.title !== undefined && (
-            <IonRow>
-              <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
-                <VideoCard
-                  url={`https://youtu.be/${match.params.v}`}
-                  title={videoInfo.title!}
-                  author={videoInfo.author!}
-                  thumbnail={videoInfo.thumbnail!}
-                />
-                <IonButton
-                  shape="round"
-                  expand="block"
-                  onClick={() => {
-                    convert(
-                      { v: match.params.v, fmt: "audio", mw: true },
-                      (percent) => {
-                        setConversionPercent(percent);
-                      }
-                    );
-                  }}
-                >
-                  Convert
-                </IonButton>
-              </IonCol>
-            </IonRow>
-          )}
-
-          <IonRow>
-            <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
-              <h1>{conversionPercent}</h1>
-            </IonCol>
-          </IonRow>
         </IonGrid>
 
-        <IonToast
-          isOpen={errorMessage !== ""}
-          onDidDismiss={() => setErrorMessage("")}
-          message={errorMessage}
-          position="top"
-          buttons={[
-            {
-              text: "Retry",
-              handler: async () => {
-                try {
-                  const info = await getInfo(match.params.v);
-                  setVideoInfo(info);
-                } catch (error) {
-                  setErrorMessage(error.message);
-                }
-              },
-            },
-          ]}
-        />
+        <IonLoading isOpen={showLoading} message={"Loading"} />
       </IonContent>
     </IonPage>
   );

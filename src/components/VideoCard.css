@@ -12,6 +12,30 @@
 }
 
 .card-header {
-  padding-left: 30px;
-  padding-bottom: 22px;
+  padding: 22px 30px 22px 30px;
+}
+
+.card-image-skeleton {
+  margin-top: 0px;
+  width: 100%;
+  height: 220px;
+}
+
+.card-author-skeleton {
+  height: 14px;
+  width: 30%;
+}
+
+.card-title-skeleton {
+  height: 30px;
+  width: 70%;
+  margin-top: 10px;
+}
+
+.text-wrap {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
