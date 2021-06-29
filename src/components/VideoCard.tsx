@@ -4,6 +4,8 @@ import {
   IonCardSubtitle,
   IonCardTitle,
 } from "@ionic/react";
+import { Link } from "react-router-dom";
+
 import "./VideoCard.css";
 
 interface CardProps {
@@ -16,9 +18,9 @@ interface CardProps {
 const VideoCard: React.FC<CardProps> = (props) => {
   return (
     <IonCard className="rounded">
-      <a href={props.url}>
+      <Link to={props.url}>
         <img className="card-image rounded" src={props.thumbnail} alt="" />
-      </a>
+      </Link>
 
       <IonCardHeader className="card-header">
         <IonCardSubtitle>{props.author}</IonCardSubtitle>
