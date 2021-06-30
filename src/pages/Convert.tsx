@@ -11,7 +11,8 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
-  IonToggle,
+  IonButtons,
+  IonBackButton,
 } from "@ionic/react";
 
 import axios from "axios";
@@ -65,7 +66,7 @@ async function convert(
     }&mw=${query.mw}`
   );
 
-  const status = await new Promise<void>((resolve) => {
+  await new Promise<void>((resolve) => {
     sse.addEventListener("progress", (event) => {
       const mevent = event as MessageEvent;
       const pevent = JSON.parse(mevent.data) as {
@@ -100,13 +101,11 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
   const [videoInfo, setVideoInfo] = useState({} as InfoResponse);
   const [conversionPercent, setConversionPercent] = useState(0.0);
 
-  const [devDisableCard, setDevDisableCard] = useState(false);
-
   const [errorMessage, setErrorMessage] = useState("");
-
   const [showLoading, setShowLoading] = useState(false);
 
   useEffect(() => {
+    setVideoInfo({});
     (async () => {
       try {
         const info = await getInfo(match.params.v);
@@ -115,53 +114,54 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
         setErrorMessage(error.message);
       }
     })();
-  });
+  }, [match.params.v]);
 
   return (
     <IonPage>
       <IonHeader translucent>
         <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/" />
+          </IonButtons>
           <IonTitle>tubero</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
         <IonGrid>
-          <IonToggle
-            checked={devDisableCard}
-            onIonChange={(e) => setDevDisableCard(e.detail.checked)}
-          />
-
-          {errorMessage === "" && (
+          {errorMessage === "" ? (
             <div>
-              <IonRow>
+              <IonRow className="ion-justify-content-center">
                 <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
                   <VideoCard
                     url={`https://youtu.be/${match.params.v}`}
-                    title={devDisableCard ? undefined : videoInfo.title}
-                    author={devDisableCard ? undefined : videoInfo.author}
-                    thumbnail={devDisableCard ? undefined : videoInfo.thumbnail}
+                    isUrlExternal={true}
+                    title={videoInfo.title}
+                    author={videoInfo.author}
+                    thumbnail={videoInfo.thumbnail}
                   />
                 </IonCol>
               </IonRow>
 
-              <IonButton
-                shape="round"
-                expand="block"
-                onClick={() => {
-                  convert(
-                    { v: match.params.v, fmt: "audio", mw: true },
-                    (percent) => {
-                      setConversionPercent(percent);
-                    }
-                  );
-                }}
-              >
-                Convert
-              </IonButton>
+              <IonRow className="ion-justify-content-center">
+                <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
+                  <IonButton
+                    shape="round"
+                    expand="block"
+                    onClick={() => {
+                      convert(
+                        { v: match.params.v, fmt: "audio", mw: true },
+                        (percent) => {
+                          setConversionPercent(percent);
+                        }
+                      );
+                    }}
+                  >
+                    Convert
+                  </IonButton>
+                </IonCol>
+              </IonRow>
             </div>
-          )}
-
-          {errorMessage !== "" && (
+          ) : (
             <ErrorMessage title="Oops" subtitle={errorMessage}>
               <IonButton
                 shape="round"

@@ -9,10 +9,7 @@ interface ErrorProps {
 const ErrorMessage: React.FC<ErrorProps> = (props) => {
   return (
     <div className="container">
-      <IonImg
-        className="error-image"
-        src="/assets/images/tubero-sad-fill-simple.svg"
-      />
+      <IonImg className="error-image" src="/assets/images/tubero-sad.svg" />
       <IonText color="primary">
         <h2>{props.title}</h2>
       </IonText>

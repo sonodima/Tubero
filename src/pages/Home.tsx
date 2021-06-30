@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  useIonLoading,
   useIonToast,
   IonContent,
   IonHeader,
@@ -9,9 +8,10 @@ import {
   IonGrid,
   IonRow,
   IonCol,
+  IonLoading,
 } from "@ionic/react";
-import { linkOutline } from "ionicons/icons";
 
+import { motion } from "framer-motion";
 import axios from "axios";
 
 import CustomToolbar from "../components/CustomToolbar";
@@ -48,8 +48,8 @@ const Home: React.FC = () => {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState({} as SearchResponse);
 
-  const [presentLoading, dismissLoading] = useIonLoading();
-  const [presentToast, dismissToast] = useIonToast();
+  const [showLoading, setShowLoading] = useState(false);
+  const [presentToast] = useIonToast();
 
   return (
     <IonPage>
@@ -59,22 +59,28 @@ const Home: React.FC = () => {
             value={query}
             onIonChange={(e) => setQuery(e.detail.value as string)}
             placeholder="Title or YouTube URL"
-            searchIcon={linkOutline}
             animated={true}
+            debounce={0}
             autocorrect="off"
             autoCapitalize="off"
             enterkeyhint="search"
             spellCheck="false"
             onKeyPress={async (e) => {
               if (e.key === "Enter") {
-                presentLoading("Searching");
+                setShowLoading(true);
+                setSearchResults({});
                 try {
                   const results = await search(query);
                   setSearchResults(results);
                 } catch (error) {
-                  presentToast(error);
+                  presentToast({
+                    message: error.message,
+                    duration: 2000,
+                    position: "top",
+                    buttons: [{ text: "Dismiss", handler: () => {} }],
+                  });
                 }
-                dismissLoading();
+                setShowLoading(false);
               }
             }}
           ></IonSearchbar>
@@ -83,23 +89,31 @@ const Home: React.FC = () => {
 
       <IonContent fullscreen>
         <IonGrid>
-          <IonRow>
-            {searchResults.results?.map((result) => {
-              return (
+          {searchResults.results?.map((result) => (
+            <motion.div
+              key={result.v}
+              layoutId={result.v}
+              initial={{ opacity: 0, marginTop: 40 }}
+              animate={{ opacity: 1, marginTop: 0 }}
+              exit={{ opacity: 0, marginTop: 40 }}
+            >
+              <IonRow className="ion-justify-content-center">
                 <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
                   <VideoCard
-                    // url={`https://youtu.be/${result.v}`}
                     url={`/convert/${result.v}`}
                     title={result.title!}
                     author={result.author!}
                     thumbnail={result.thumbnail!}
                   />
                 </IonCol>
-              );
-            })}
-          </IonRow>
+              </IonRow>
+            </motion.div>
+          ))}
         </IonGrid>
+
         <GitHubButton />
+
+        <IonLoading isOpen={showLoading} message="Loading" />
       </IonContent>
     </IonPage>
   );
