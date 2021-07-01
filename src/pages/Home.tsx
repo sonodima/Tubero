@@ -12,37 +12,14 @@ import {
 } from "@ionic/react";
 
 import { motion } from "framer-motion";
-import axios from "axios";
+
+import SearchResponse from "../types/SearchResponse";
+import search from "../core/search";
 
 import CustomToolbar from "../components/CustomToolbar";
 import GitHubButton from "../components/GitHubButton";
 import VideoCard from "../components/VideoCard";
 import "./Home.css";
-
-type SearchItem = {
-  v?: string;
-  title?: string;
-  author?: string;
-  thumbnail?: string | null;
-};
-
-type SearchResponse = {
-  error?: string;
-  corrected?: string;
-  results?: SearchItem[];
-};
-
-async function search(query: string): Promise<SearchResponse> {
-  const response = await axios.get<SearchResponse>(
-    `${process.env.REACT_APP_BACKEND_ADDRESS || ""}/search?q=${query}`,
-    { timeout: 4000 }
-  );
-  if (response.status !== 200 && response.data.error) {
-    throw new Error(response.data.error);
-  }
-
-  return response.data;
-}
 
 const Home: React.FC = () => {
   const [query, setQuery] = useState("");
