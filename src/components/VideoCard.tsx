@@ -21,7 +21,13 @@ interface CardProps {
   thumbnail?: string;
 }
 
-const VideoCard: React.FC<CardProps> = (props) => {
+const VideoCard: React.FC<CardProps> = ({
+  url,
+  isUrlExternal,
+  title,
+  author,
+  thumbnail,
+}) => {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const CardImage: React.FC = () => {
@@ -43,7 +49,7 @@ const VideoCard: React.FC<CardProps> = (props) => {
           <img
             className="card-image "
             style={imgLoaded ? {} : { display: "none" }}
-            src={props.thumbnail}
+            src={thumbnail}
             alt=""
             onLoad={() => setImgLoaded(true)}
           />
@@ -54,18 +60,18 @@ const VideoCard: React.FC<CardProps> = (props) => {
 
   return (
     <IonCard className="rounded">
-      {props.thumbnail && props.url ? (
+      {thumbnail && url ? (
         <>
           {!imgLoaded ? (
             <IonSkeletonText animated className="card-image-skeleton rounded" />
           ) : null}
 
-          {props.isUrlExternal ? (
-            <a href={props.url}>
+          {isUrlExternal ? (
+            <a href={url}>
               <CardImage />
             </a>
           ) : (
-            <Link to={props.url}>
+            <Link to={url}>
               <CardImage />
             </Link>
           )}
@@ -75,16 +81,14 @@ const VideoCard: React.FC<CardProps> = (props) => {
       )}
 
       <IonCardHeader className="card-header">
-        {props.author ? (
-          <IonCardSubtitle className="text-wrap">
-            {props.author}
-          </IonCardSubtitle>
+        {author ? (
+          <IonCardSubtitle className="text-wrap">{author}</IonCardSubtitle>
         ) : (
           <IonSkeletonText animated className="card-author-skeleton" />
         )}
 
-        {props.title ? (
-          <IonCardTitle className="text-wrap">{props.title}</IonCardTitle>
+        {title ? (
+          <IonCardTitle className="text-wrap">{title}</IonCardTitle>
         ) : (
           <IonSkeletonText animated className="card-title-skeleton" />
         )}

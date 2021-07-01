@@ -6,16 +6,16 @@ interface ErrorProps {
   subtitle: string;
 }
 
-const ErrorMessage: React.FC<ErrorProps> = (props) => {
+const ErrorMessage: React.FC<ErrorProps> = ({ children, title, subtitle }) => {
   return (
     <div className="container">
       <IonImg className="error-image" src="/assets/images/tubero-sad.svg" />
       <IonText color="primary">
-        <h2>{props.title}</h2>
+        <h2>{title}</h2>
       </IonText>
 
-      <p>{props.subtitle}</p>
-      {props.children}
+      <p>{subtitle}</p>
+      {children}
     </div>
   );
 };

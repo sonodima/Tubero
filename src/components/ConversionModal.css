@@ -1,0 +1,11 @@
+.CircularProgressbar-path {
+  stroke: var(--ion-color-primary) !important;
+}
+
+.CircularProgressbar-trail {
+  stroke: var(--ion-item-background) !important;
+}
+
+.CircularProgressbar-text {
+  fill: var(--ion-color-primary) !important;
+}

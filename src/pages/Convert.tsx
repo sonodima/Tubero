@@ -19,6 +19,7 @@ import axios from "axios";
 
 import ErrorMessage from "../components/ErrorMessage";
 import VideoCard from "../components/VideoCard";
+import ConversionModal from "../components/ConversionModal";
 import "./Convert.css";
 
 type InfoResponse = {
@@ -82,7 +83,10 @@ async function convert(
         id: string;
       };
 
+      sse.close();
+
       download(pevent.id);
+      resolve();
     });
 
     sse.addEventListener("error", (event) => {
@@ -92,6 +96,9 @@ async function convert(
       };
 
       console.log(pevent.error);
+
+      sse.close();
+      resolve();
     });
   });
 }
@@ -103,6 +110,7 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [showLoading, setShowLoading] = useState(false);
+  const [showConversionModal, setShowConversionModal] = useState(false);
 
   useEffect(() => {
     setVideoInfo({});
@@ -147,13 +155,22 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                   <IonButton
                     shape="round"
                     expand="block"
-                    onClick={() => {
-                      convert(
-                        { v: match.params.v, fmt: "audio", mw: true },
-                        (percent) => {
-                          setConversionPercent(percent);
-                        }
-                      );
+                    onClick={async () => {
+                      setConversionPercent(0);
+                      setShowConversionModal(true);
+
+                      try {
+                        await convert(
+                          { v: match.params.v, fmt: "audio", mw: true },
+                          (percent) => {
+                            setConversionPercent(percent);
+                          }
+                        );
+                      } catch (error) {
+                        setErrorMessage(error.message);
+                      }
+
+                      setShowConversionModal(false);
                     }}
                   >
                     Convert
@@ -181,6 +198,12 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
             </ErrorMessage>
           )}
         </IonGrid>
+
+        <ConversionModal
+          isOpen={showConversionModal}
+          progress={conversionPercent}
+          onCancel={() => {}}
+        />
 
         <IonLoading isOpen={showLoading} message={"Loading"} />
       </IonContent>

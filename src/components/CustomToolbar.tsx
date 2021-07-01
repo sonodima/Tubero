@@ -8,16 +8,14 @@ import {
 } from "@ionic/react";
 import "./CustomToolbar.css";
 
-interface ToolbarProps {}
-
-const CustomToolbar: React.FC<ToolbarProps> = (props) => {
+const CustomToolbar: React.FC = ({ children }) => {
   if (isPlatform("ios")) {
     return (
       <div>
         <IonToolbar>
           <IonTitle size="large">tubero</IonTitle>
         </IonToolbar>
-        <IonToolbar>{props.children}</IonToolbar>
+        <IonToolbar>{children}</IonToolbar>
       </div>
     );
   } else {
@@ -38,7 +36,7 @@ const CustomToolbar: React.FC<ToolbarProps> = (props) => {
               pullXs="0"
               sizeXs="12"
             >
-              {props.children}
+              {children}
             </IonCol>
           </IonRow>
         </IonGrid>
