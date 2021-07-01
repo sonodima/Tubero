@@ -47,61 +47,81 @@ async function getInfo(v: string): Promise<InfoResponse> {
   return response.data;
 }
 
-function download(id: string) {
-  const link = document.createElement("a");
-  link.href = `${
-    process.env.REACT_APP_BACKEND_ADDRESS || ""
-  }/download?id=${id}`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+class Conversion {
+  sse?: EventSource;
+  id?: string;
+  onProgress?: (percent: number) => void;
+  resolver?: () => void;
+
+  public async convert(query: ConvertQuery): Promise<void> {
+    this.sse = new EventSource(
+      `${process.env.REACT_APP_BACKEND_ADDRESS || ""}/convert?v=${
+        query.v
+      }&fmt=${query.fmt}&mw=${query.mw}`
+    );
+
+    const error = await new Promise<string | void>((resolve) => {
+      this.resolver = resolve;
+
+      this.sse!.addEventListener("progress", (event) => {
+        const mevent = event as MessageEvent;
+        const pevent = JSON.parse(mevent.data) as {
+          percent: number;
+        };
+
+        if (this.onProgress) {
+          this.onProgress(pevent.percent);
+        }
+      });
+
+      this.sse!.addEventListener("success", (event) => {
+        const mevent = event as MessageEvent;
+        const pevent = JSON.parse(mevent.data) as {
+          id: string;
+        };
+
+        this.sse!.close();
+        this.id = pevent.id;
+        resolve();
+      });
+
+      this.sse!.addEventListener("error", (event) => {
+        const mevent = event as MessageEvent;
+        const pevent = JSON.parse(mevent.data) as {
+          error: string;
+        };
+
+        this.sse!.close();
+        resolve(pevent.error);
+      });
+    });
+
+    if (error) {
+      throw new Error(error);
+    }
+  }
+
+  public abort() {
+    this.sse!.close();
+    if (this.resolver) {
+      this.resolver();
+    }
+  }
+
+  public download() {
+    if (this.id) {
+      const link = document.createElement("a");
+      link.href = `${process.env.REACT_APP_BACKEND_ADDRESS || ""}/download?id=${
+        this.id
+      }`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+  }
 }
 
-async function convert(
-  query: ConvertQuery,
-  onProgress: (percent: number) => void
-) {
-  const sse = new EventSource(
-    `${process.env.REACT_APP_BACKEND_ADDRESS || ""}/convert?v=${query.v}&fmt=${
-      query.fmt
-    }&mw=${query.mw}`
-  );
-
-  await new Promise<void>((resolve) => {
-    sse.addEventListener("progress", (event) => {
-      const mevent = event as MessageEvent;
-      const pevent = JSON.parse(mevent.data) as {
-        percent: number;
-      };
-
-      onProgress(pevent.percent);
-    });
-
-    sse.addEventListener("success", (event) => {
-      const mevent = event as MessageEvent;
-      const pevent = JSON.parse(mevent.data) as {
-        id: string;
-      };
-
-      sse.close();
-
-      download(pevent.id);
-      resolve();
-    });
-
-    sse.addEventListener("error", (event) => {
-      const mevent = event as MessageEvent;
-      const pevent = JSON.parse(mevent.data) as {
-        error: string;
-      };
-
-      console.log(pevent.error);
-
-      sse.close();
-      resolve();
-    });
-  });
-}
+const conversion = new Conversion();
 
 interface ConvertPageProps extends RouteComponentProps<{ v: string }> {}
 const Convert: React.FC<ConvertPageProps> = ({ match }) => {
@@ -159,13 +179,18 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                       setConversionPercent(0);
                       setShowConversionModal(true);
 
+                      conversion.onProgress = (percent) => {
+                        setConversionPercent(percent);
+                      };
+
                       try {
-                        await convert(
-                          { v: match.params.v, fmt: "audio", mw: true },
-                          (percent) => {
-                            setConversionPercent(percent);
-                          }
-                        );
+                        await conversion.convert({
+                          v: match.params.v,
+                          fmt: "audio",
+                          mw: true,
+                        });
+
+                        conversion.download();
                       } catch (error) {
                         setErrorMessage(error.message);
                       }
@@ -202,7 +227,9 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
         <ConversionModal
           isOpen={showConversionModal}
           progress={conversionPercent}
-          onCancel={() => {}}
+          onCancel={() => {
+            conversion.abort();
+          }}
         />
 
         <IonLoading isOpen={showLoading} message={"Loading"} />
