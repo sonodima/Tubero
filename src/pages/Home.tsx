@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useHistory } from "react-router";
 import {
   useIonToast,
   IonContent,
@@ -15,6 +16,7 @@ import { motion } from "framer-motion";
 
 import SearchResponse from "../types/SearchResponse";
 import search from "../core/search";
+import getIdFromUrl from "../utils/getIdFromUrl";
 
 import CustomToolbar from "../components/CustomToolbar";
 import GitHubButton from "../components/GitHubButton";
@@ -22,6 +24,9 @@ import VideoCard from "../components/VideoCard";
 import "./Home.css";
 
 const Home: React.FC = () => {
+  let history = useHistory();
+  const searchBarRef = useRef<HTMLIonSearchbarElement>(null);
+
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState({} as SearchResponse);
 
@@ -33,6 +38,7 @@ const Home: React.FC = () => {
       <IonHeader translucent>
         <CustomToolbar>
           <IonSearchbar
+            ref={searchBarRef}
             value={query}
             onIonChange={(e) => setQuery(e.detail.value as string)}
             placeholder="Title or YouTube URL"
@@ -44,20 +50,26 @@ const Home: React.FC = () => {
             spellCheck="false"
             onKeyPress={async (e) => {
               if (e.key === "Enter") {
-                setShowLoading(true);
                 setSearchResults({});
-                try {
-                  const results = await search(query);
-                  setSearchResults(results);
-                } catch (error) {
-                  presentToast({
-                    message: error.message,
-                    duration: 2000,
-                    position: "top",
-                    buttons: [{ text: "Dismiss", handler: () => {} }],
-                  });
+
+                const id = getIdFromUrl(query);
+                if (!id) {
+                  setShowLoading(true);
+                  try {
+                    const results = await search(query);
+                    setSearchResults(results);
+                  } catch (error) {
+                    presentToast({
+                      message: error.message,
+                      duration: 2000,
+                      position: "top",
+                      buttons: [{ text: "Dismiss", handler: () => {} }],
+                    });
+                  }
+                  setShowLoading(false);
+                } else {
+                  history.push(`/convert/${id}`);
                 }
-                setShowLoading(false);
               }
             }}
           ></IonSearchbar>
