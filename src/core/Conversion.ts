@@ -64,9 +64,9 @@ class Conversion {
   public download() {
     if (this.id) {
       const link = document.createElement("a");
-      link.href = `${process.env.REACT_APP_BACKEND_ADDRESS || ""}/download?id=${
-        this.id
-      }`;
+      link.href = `${
+        process.env.REACT_APP_BACKEND_ADDRESS || ""
+      }/download?id=${encodeURI(this.id)}`;
       document.body.appendChild(link);
       link.click();
       link.remove();
