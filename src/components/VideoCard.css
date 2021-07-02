@@ -2,6 +2,10 @@
   border-radius: 30px !important;
 }
 
+.borderless {
+  margin-top: 0px;
+}
+
 .card-image-container {
   width: 100%;
   overflow: hidden;

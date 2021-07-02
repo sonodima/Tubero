@@ -10,6 +10,7 @@ import {
   IonRow,
   IonCol,
   IonLoading,
+  IonText,
 } from "@ionic/react";
 
 import { motion } from "framer-motion";
@@ -78,7 +79,21 @@ const Home: React.FC = () => {
 
       <IonContent fullscreen>
         <IonGrid>
-          {searchResults.results?.map((result) => (
+          {searchResults.corrected ? (
+            <div>
+              <IonRow className="ion-justify-content-center">
+                <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
+                  <IonText color="medium">
+                    <p className="corrected-query">
+                      Results for <b>{searchResults.corrected}</b>
+                    </p>
+                  </IonText>
+                </IonCol>
+              </IonRow>
+            </div>
+          ) : null}
+
+          {searchResults.results?.map((result, index) => (
             <motion.div
               key={result.v}
               layoutId={result.v}
@@ -93,6 +108,7 @@ const Home: React.FC = () => {
                     title={result.title!}
                     author={result.author!}
                     thumbnail={result.thumbnail!}
+                    borderless={index !== 0}
                   />
                 </IonCol>
               </IonRow>

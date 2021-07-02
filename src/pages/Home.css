@@ -8,3 +8,9 @@ ion-grid {
   display: flex;
   flex-direction: column;
 }
+
+.corrected-query {
+  margin-left: 12px;
+  margin-right: 12px;
+  margin-bottom: 0px;
+}

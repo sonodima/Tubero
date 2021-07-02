@@ -19,6 +19,7 @@ interface CardProps {
   title?: string;
   author?: string;
   thumbnail?: string;
+  borderless?: boolean;
 }
 
 const VideoCard: React.FC<CardProps> = ({
@@ -27,6 +28,7 @@ const VideoCard: React.FC<CardProps> = ({
   title,
   author,
   thumbnail,
+  borderless,
 }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
 
@@ -59,7 +61,7 @@ const VideoCard: React.FC<CardProps> = ({
   };
 
   return (
-    <IonCard className="rounded">
+    <IonCard className={`rounded ${borderless ? "borderless" : ""}`}>
       {thumbnail && url ? (
         <>
           {!imgLoaded ? (
@@ -99,6 +101,7 @@ const VideoCard: React.FC<CardProps> = ({
 
 VideoCard.defaultProps = {
   isUrlExternal: false,
+  borderless: true,
 };
 
 export default VideoCard;
