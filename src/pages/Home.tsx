@@ -15,7 +15,7 @@ import {
 import { motion } from "framer-motion";
 
 import SearchResponse from "../types/SearchResponse";
-import search from "../core/search";
+import search from "../utils/search";
 import getIdFromUrl from "../utils/getIdFromUrl";
 
 import CustomToolbar from "../components/CustomToolbar";

@@ -6,3 +6,11 @@
   transform: translateY(-50%);
   text-align: center;
 }
+
+.error-image {
+  border: none;
+}
+
+.message-container {
+  margin-bottom: 42px;
+}

@@ -11,13 +11,15 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
+  IonToggle,
   IonButtons,
   IonBackButton,
 } from "@ionic/react";
+import { Storage } from "@ionic/storage";
 
 import InfoResponse from "../types/InfoResponse";
 import Conversion from "../core/Conversion";
-import getInfo from "../core/getInfo";
+import getInfo from "../utils/getInfo";
 
 import ErrorMessage from "../components/ErrorMessage";
 import VideoCard from "../components/VideoCard";
@@ -25,15 +27,31 @@ import ConversionModal from "../components/ConversionModal";
 import "./Convert.css";
 
 const conversion = new Conversion();
+const store = new Storage();
 
 interface ConvertPageProps extends RouteComponentProps<{ v: string }> {}
 const Convert: React.FC<ConvertPageProps> = ({ match }) => {
   const [videoInfo, setVideoInfo] = useState({} as InfoResponse);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [withMw, setWithMw] = useState(true);
+
   const [conversionPercent, setConversionPercent] = useState(0.0);
 
-  const [errorMessage, setErrorMessage] = useState("");
   const [showLoading, setShowLoading] = useState(false);
   const [showConversionModal, setShowConversionModal] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      await store.create();
+
+      const current = await store.get("mw");
+      if (current === undefined) {
+        await store.set("mw", true);
+      } else {
+        setWithMw(current);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     setVideoInfo({});
@@ -60,7 +78,7 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
       <IonContent fullscreen>
         <IonGrid>
           {errorMessage === "" ? (
-            <div>
+            <>
               <IonRow className="ion-justify-content-center">
                 <IonCol sizeMd="5" sizeLg="4" sizeXl="3">
                   <VideoCard
@@ -70,6 +88,20 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                     author={videoInfo.author}
                     thumbnail={videoInfo.thumbnail}
                   />
+                </IonCol>
+              </IonRow>
+
+              <IonRow>
+                <IonCol>
+                  <IonToggle
+                    checked={withMw}
+                    onIonChange={(e) => {
+                      store.set("mw", !withMw);
+                      setWithMw(e.detail.checked);
+                    }}
+                  >
+                    Test
+                  </IonToggle>
                 </IonCol>
               </IonRow>
 
@@ -90,7 +122,7 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                         await conversion.convert({
                           v: match.params.v,
                           fmt: "audio",
-                          mw: true,
+                          mw: withMw,
                         });
 
                         conversion.download();
@@ -105,7 +137,7 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                   </IonButton>
                 </IonCol>
               </IonRow>
-            </div>
+            </>
           ) : (
             <ErrorMessage title="Oops" subtitle={errorMessage}>
               <IonButton
@@ -115,6 +147,7 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                   try {
                     const info = await getInfo(match.params.v);
                     setVideoInfo(info);
+                    setErrorMessage("");
                   } catch (error) {
                     setErrorMessage(error.message);
                   }
