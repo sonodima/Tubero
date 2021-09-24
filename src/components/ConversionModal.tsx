@@ -18,28 +18,23 @@ const ConversionModal: React.FC<ModalProps> = ({
 }) => {
   return (
     <IonModal isOpen={isOpen}>
-      <IonGrid>
-        <IonRow className="ion-justify-content-center">
-          <IonCol sizeXs="8">
-            <CircularProgressbar
-              strokeWidth={6}
-              value={progress}
-              text={`${progress}%`}
-            />
-          </IonCol>
-        </IonRow>
+      <div className="container">
+        <h1>Converting</h1>
+        <CircularProgressbar
+          strokeWidth={6}
+          value={progress}
+          text={`${progress}%`}
+        />
 
-        <IonRow className="ion-justify-content-center">
-          <IonButton
-            shape="round"
-            expand="full"
-            color="medium"
-            onClick={onCancel}
-          >
-            Cancel
-          </IonButton>
-        </IonRow>
-      </IonGrid>
+        <IonButton
+          shape="round"
+          expand="full"
+          color="medium"
+          onClick={onCancel}
+        >
+          Cancel
+        </IonButton>
+      </div>
     </IonModal>
   );
 };

@@ -1,41 +1,40 @@
 import ConvertQuery from "../types/ConvertQuery";
+import ProgressData from "../types/ProgressData";
 
 class Conversion {
   sse?: EventSource;
   id?: string;
-  onProgress?: (percent: number) => void;
-  resolver?: () => void;
+  onProgress?: (progress: ProgressData) => void;
+  resolver?: (result: boolean) => void;
 
-  public async convert(query: ConvertQuery): Promise<void> {
+  public async convert(query: ConvertQuery): Promise<boolean> {
     this.sse = new EventSource(
       `${process.env.REACT_APP_BACKEND_ADDRESS || ""}/convert?v=${
         query.v
       }&fmt=${query.fmt}&mw=${query.mw}`
     );
 
-    const error = await new Promise<string | void>((resolve) => {
+    let error = "";
+    const status = await new Promise<boolean>((resolve) => {
       this.resolver = resolve;
 
       this.sse!.addEventListener("progress", (event) => {
         const mevent = event as MessageEvent;
-        const pevent = JSON.parse(mevent.data) as {
-          percent: number;
-        };
+        const pevent = JSON.parse(mevent.data) as ProgressData;
 
         if (this.onProgress) {
-          this.onProgress(pevent.percent);
+          this.onProgress(pevent);
         }
       });
 
-      this.sse!.addEventListener("success", (event) => {
+      this.sse!.addEventListener("success", async (event) => {
         const mevent = event as MessageEvent;
         const pevent = JSON.parse(mevent.data) as {
           id: string;
         };
 
-        this.sse!.close();
         this.id = pevent.id;
-        resolve();
+        resolve(true);
       });
 
       this.sse!.addEventListener("error", (event) => {
@@ -45,19 +44,22 @@ class Conversion {
         };
 
         this.sse!.close();
-        resolve(pevent.error);
+        error = pevent.error;
+        resolve(false);
       });
     });
 
-    if (error) {
+    if (error !== "") {
       throw new Error(error);
     }
+
+    return status;
   }
 
   public abort() {
     this.sse!.close();
     if (this.resolver) {
-      this.resolver();
+      this.resolver(false);
     }
   }
 

@@ -1,3 +1,12 @@
+.container {
+  left: 0;
+  right: 0;
+  top: 50%;
+  position: absolute;
+  transform: translateY(-50%);
+  text-align: center;
+}
+
 .CircularProgressbar-path {
   stroke: var(--ion-color-primary) !important;
 }

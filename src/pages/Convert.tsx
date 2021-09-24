@@ -114,18 +114,40 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                       setConversionPercent(0);
                       setShowConversionModal(true);
 
-                      conversion.onProgress = (percent) => {
-                        setConversionPercent(percent);
+                      conversion.onProgress = (progress) => {
+                        console.log(progress);
+                        switch (progress.phase) {
+                          case "info":
+                            break;
+
+                          case "startup":
+                            break;
+
+                          case "download":
+                            setConversionPercent(progress.percent!);
+                            break;
+
+                          case "conversion":
+                            break;
+
+                          case "cover":
+                            break;
+
+                          case "metadata":
+                            break;
+                        }
                       };
 
                       try {
-                        await conversion.convert({
+                        const result = await conversion.convert({
                           v: match.params.v,
                           fmt: "audio",
                           mw: withMw,
                         });
 
-                        conversion.download();
+                        if (result) {
+                          conversion.download();
+                        }
                       } catch (error) {
                         setErrorMessage(error.message);
                       }
