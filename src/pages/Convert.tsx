@@ -115,7 +115,6 @@ const Convert: React.FC<ConvertPageProps> = ({ match }) => {
                       setShowConversionModal(true);
 
                       conversion.onProgress = (progress) => {
-                        console.log(progress);
                         switch (progress.phase) {
                           case "info":
                             break;
